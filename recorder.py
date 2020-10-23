@@ -1,68 +1,62 @@
-import os,boto3,pyaudio,wave,uuid
-from botocore.exceptions import ClientError
-import logging
 
-def record(id,directory,chunkSize=1024,format=pyaudio.paInt16,chanels=2,rate=44100,time=5,ext=".wav"):
-    APP_ROOT= os.path.dirname(os.path.abspath(__file__))
-    CHUNK = chunkSize
-    FORMAT = format
-    CHANNELS = chanels
-    RATE = rate
-    RECORD_SECONDS = time
-    WAVE_OUTPUT_FILENAME = os.path.join(APP_ROOT, directory,id+ext)
-    p = pyaudio.PyAudio()
-    stream = p.open(format=FORMAT,
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    frames_per_buffer=CHUNK)
-
-    print("* recording")
-
-    frames = []
-
-    for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-        data = stream.read(CHUNK)
-        frames.append(data)
-
-    print("* done recording")
-
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
-    
-    wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
-    wf.setnchannels(CHANNELS)
-    wf.setsampwidth(p.get_sample_size(FORMAT))
-    wf.setframerate(RATE)
-    wf.writeframes(b''.join(frames))
-    wf.close()
-    return  WAVE_OUTPUT_FILENAME
-
-def uploadToBoto3(file_name,bucket,object_s3_name):
-    s3=boto3.client('s3',region_name="us-east-1",aws_access_key_id ="AKIA4BM2RUPO6OLKDPDE",aws_secret_access_key ="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")
-    try:
-        response = s3.upload_file(file_name, bucket,object_s3_name,
-        ExtraArgs=  {'Metadata':{
-                        'dato': 'valor123',
-                        'dato2': 'valor3231',
-                        }
-                    }       
-        )
-       
-        os.remove(file_name)
-    except ClientError as e:
-        logging.error(e)
-        return False
+import os,pyaudio,wave,uuid
+from os.path import dirname
+from resources.awsS3Resource import AwsS3Resource
+from resources.deviceInfo import deviceInfo
 
 
-    dirname='audiostemp'
-    try:
-        os.mkdir(dirname)
-    except:
-        pass
+class recorder:
+    def __init__(self,dirname,ext=".wav"):
+        self.directory=dirname
+        self.ext=ext
+        self.format=pyaudio.paInt16
+        self.chanels=1
+        self.rate=44100
+        self.time=5 
+        self.chunkSize=1024
+        try:
+            os.mkdir(dirname)
+        except:
+            pass
+    def record(self,id):
+        APP_ROOT= os.path.dirname(os.path.abspath(__file__))
+        WAVE_OUTPUT_FILENAME = os.path.join(APP_ROOT, self.directory,id+self.ext)
+        p = pyaudio.PyAudio()
+        stream = p.open(format=self.format,
+                        channels=self.chanels,
+                        rate=self.rate,
+                        input=True,
+                        frames_per_buffer=self.chunkSize)
 
-    filename=uuid.uuid1().__str__()
-    ext=".wav"
-    ruta=record(id=filename,directory=dirname)
-    uploadToBoto3(file_name=ruta,bucket='audios-a-inferir',object_s3_name=filename+ext)
+        print("* recording")
+        frames = []
+        for i in range(0, int(self.rate / self.chunkSize * self.time)):
+            data = stream.read(self.chunkSize)
+            frames.append(data)
+        print("* done recording")
+        stream.stop_stream()
+        stream.close()
+        p.terminate()   
+        wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
+        wf.setnchannels(self.chanels)
+        wf.setsampwidth(p.get_sample_size(self.format))
+        wf.setframerate(self.rate)
+        wf.writeframes(b''.join(frames))
+        wf.close()
+
+        return  WAVE_OUTPUT_FILENAME
+
+
+
+awsS3 = AwsS3Resource()
+device=deviceInfo()
+
+ext=".wav"
+filename=uuid.uuid1().__str__()+ext
+
+metadata={"audio_filename": filename, "device_info":deviceInfo.getInfoObj()}
+
+grabador=recorder(dirname='audiostemp')
+ruta=grabador.record(id=filename)
+
+AwsS3Resource.uploadData(awsS3,file_name=ruta,object_s3_name=filename,dicMetadata=metadata)

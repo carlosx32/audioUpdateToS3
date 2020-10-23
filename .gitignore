@@ -1,2 +1,4 @@
 .vscode
 /audios/*
+entorno
+.env.py
