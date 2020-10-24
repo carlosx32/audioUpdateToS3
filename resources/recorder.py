@@ -1,14 +1,11 @@
 
-import os,pyaudio,wave,uuid
+import os,pyaudio,wave
 from os.path import dirname
-from resources.awsS3Resource import AwsS3Resource
-from resources.deviceInfo import deviceInfo
-
 
 class recorder:
-    def __init__(self,dirname,ext=".wav"):
+    def __init__(self,dirname):
         self.directory=dirname
-        self.ext=ext
+
         self.format=pyaudio.paInt16
         self.chanels=1
         self.rate=44100
@@ -18,9 +15,10 @@ class recorder:
             os.mkdir(dirname)
         except:
             pass
-    def record(self,id):
+    def record(self,id,ext=".wav"):
         APP_ROOT= os.path.dirname(os.path.abspath(__file__))
-        WAVE_OUTPUT_FILENAME = os.path.join(APP_ROOT, self.directory,id+self.ext)
+        
+        WAVE_OUTPUT_FILENAME = os.path.join(self.directory,id+ext)
         p = pyaudio.PyAudio()
         stream = p.open(format=self.format,
                         channels=self.chanels,
@@ -46,17 +44,3 @@ class recorder:
 
         return  WAVE_OUTPUT_FILENAME
 
-
-
-awsS3 = AwsS3Resource()
-device=deviceInfo()
-
-ext=".wav"
-filename=uuid.uuid1().__str__()+ext
-
-metadata={"audio_filename": filename, "device_info":deviceInfo.getInfoObj()}
-
-grabador=recorder(dirname='audiostemp')
-ruta=grabador.record(id=filename)
-
-AwsS3Resource.uploadData(awsS3,file_name=ruta,object_s3_name=filename,dicMetadata=metadata)

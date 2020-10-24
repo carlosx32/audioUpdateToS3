@@ -1,12 +1,14 @@
 import json
+from logging import error
 import os
 import boto3
 import io
 
-class AwsS3Resource:
+from botocore.exceptions import ClientError
 
+class AwsS3Resource:
     def __init__(self):
-        session = boto3.Session()
+        session = boto3.Session(aws_access_key_id ="AKIA4BM2RUPO6OLKDPDE",aws_secret_access_key ="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")
         s3 = session.resource('s3')
         self.bucket = s3.Bucket('audios-a-inferir')
     def getStreamData(self, file_name):
@@ -15,9 +17,15 @@ class AwsS3Resource:
         object.download_fileobj(audioStream)
         return audioStream.getvalue()
     def uploadData(self,file_name,object_s3_name,dicMetadata={}):
-        self.bucket.upload_file(file_name,object_s3_name,
-        ExtraArgs=  {'Metadata':{
-                        'audioData': json.dumps(dicMetadata),
-                        }}
-        )
+        try: 
+            self.bucket.upload_file(file_name,object_s3_name,
+            ExtraArgs=  {'Metadata':{
+                            'audioData': json.dumps(dicMetadata),
+                            }}
+            )
+            os.remove(file_name)
+        except ClientError as e:
+            logging.error(e)
+            return False
+            
 
