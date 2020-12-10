@@ -3,14 +3,13 @@ import os,pyaudio,wave
 from os.path import dirname
 
 class recorder:
-    def __init__(self,dirname):
+    def __init__(self,dirname,time=10):
         self.directory=dirname
-
         self.format=pyaudio.paInt16
         self.chanels=1
         self.rate=44100
-        self.time=5 
-        self.chunkSize=1024
+        self.time=time
+        self.chunkSize=1024*4
         try:
             os.mkdir(dirname)
         except:
@@ -43,4 +42,8 @@ class recorder:
         wf.close()
 
         return  WAVE_OUTPUT_FILENAME
-
+    def calcularLeqA():
+        """
+        docstring
+        """
+        return "";
