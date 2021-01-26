@@ -9,7 +9,7 @@ from botocore.exceptions import ClientError
 
 class AwsS3Resource:
     def __init__(self):
-        session = boto3.Session(aws_access_key_id ="AKIA4BM2RUPO6OLKDPDE",aws_secret_access_key ="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")
+        session = boto3.Session(aws_access_key_id ="",aws_secret_access_key ="")
         s3 = session.resource('s3')
         self.bucket = s3.Bucket('audios-a-inferir')
     def getStreamData(self, file_name):
