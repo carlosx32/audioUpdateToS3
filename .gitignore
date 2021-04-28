@@ -4,3 +4,4 @@ entorno
 .env.py
 /audiostemp/*
 .pyc
+__pycache__/

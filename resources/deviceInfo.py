@@ -32,11 +32,11 @@ class deviceInfo:
 
         geodata = self.getGeoData()
         identifier = self.deviceID
-        deviceInfo = { 
-            "id":identifier ,
-            "location-lon": geodata[0],
-            "location-lat": geodata[1],
-            "description": os.environ.get('DEVICEINFO')
+        deviceInfo = {
+                "id":"raspberry-"+identifier ,
+                "location-lon": str(geodata[0]),
+                "location-lat": str(geodata[1]),
+                "description": os.environ.get('DEVICEINFO')
         }
         return deviceInfo
     def getDeviceIdentifier(self):
