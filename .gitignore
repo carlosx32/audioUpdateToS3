@@ -3,4 +3,5 @@
 entorno
 .env.py
 /audiostemp/*
-.pyc
+*.pyc
+/env
